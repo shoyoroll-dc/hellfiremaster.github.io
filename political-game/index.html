@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정치 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>정치 게임</h1>
+        <p id="event-info"></p>
+        <div id="intro">
+            <h2>정치인을 선택하세요:</h2>
+            <button onclick="choosePolitician(0)">노무현</button>
+            <button onclick="choosePolitician(1)">박근혜</button>
+            <button onclick="choosePolitician(2)">문재인</button>
+            <button onclick="choosePolitician(3)">윤석열</button>
+        </div>
+        <div id="game" style="display:none;">
+            <h2 id="politician-name"></h2>
+            <p id="politician-stats"></p>
+            <p id="turn-info"></p>            
+            <p id="support-level">현재 지지도: 50</p>
+            <p id="experience-level">경험치: 0</p>
+            <p id="player-level">레벨: 1</p>
+            <button onclick="takeAction(1)">경제 개혁</button>
+            <button onclick="takeAction(2)">외교 정책</button>
+            <button onclick="takeAction(3)">연설</button>
+            <button onclick="takeAction(4)">특수 능력 사용</button>
+            <button onclick="endGame()">종료</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
