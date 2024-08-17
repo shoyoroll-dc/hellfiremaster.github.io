@@ -1,14 +1,14 @@
 // 로컬 스토리지에서 책 목록을 불러오는 함수
 function loadBooks() {
-    const storedBooks = localStorage.getItem('books');
-    if (storedBooks) {
-        books = JSON.parse(storedBooks);
-    }
+    // const storedBooks = localStorage.getItem('books');
+    // if (storedBooks) {
+    //     books = JSON.parse(storedBooks);
+    // }
 }
 
 // 책 목록을 로컬 스토리지에 저장하는 함수
 function saveBooks() {
-    localStorage.setItem('books', JSON.stringify(books));
+    // localStorage.setItem('books', JSON.stringify(books));
 }
 
 // 책 목록을 저장할 배열 초기화
