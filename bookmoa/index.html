@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>만화방 책 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .book-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .book-list li {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>만화방 책 관리</h1>
+
+        <h2>책 등록</h2>
+        <form id="book-form">
+            <input type="text" id="title" placeholder="책 제목" required>
+            <input type="text" id="author" placeholder="저자" required>
+            <button type="submit">등록</button>
+        </form>
+
+        <h2>책 목록</h2>
+        <input type="text" id="search" placeholder="책 제목이나 저자 검색">
+        <ul id="book-list" class="book-list"></ul>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
