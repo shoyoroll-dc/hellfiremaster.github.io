@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멍청한유라ㅋ 키우기 게임</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #game-container { max-width: 600px; margin: 0 auto; }
+        button { margin: 10px 0; padding: 10px; width: 100%; }
+        #actions { display: flex; flex-direction: column; align-items: center; }
+        #restart-container { margin-top: 20px; }
+
+        @keyframes celebrationAnimation {
+            0% { transform: scale(1); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        
+        .celebration, .failure {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 215, 0, 0.8);
+            color: #000;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            animation: celebrationAnimation 2s ease-in-out;
+        }
+
+        .failure {
+            background-color: rgba(255, 69, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>멍청한유라ㅋ 키우기 게임</h1>
+        <h4>미션: SQLD, 정보처리기사 자격증 취득, 업무성공 1</h4>
+        <div id="stats"></div>
+        <div id="actions"></div>
+        <div id="message"></div>
+    </div>
+    <div id="celebration" style="display: none;" class="celebration"></div>
+    <div id="failure" style="display: none;" class="failure"></div>
+    <div id="restart-container" style="display: none;">
+        <button onclick="location.reload()">다시 시작</button>
+    </div>
+    <script>
+        const game = {
+            day: 1,
+            isWeekend: false,
+            stress: 50,
+            sqld: 0,
+            infoProcessing: 0,
+            workSuccess: 0,
+            sqldCertified: false,
+            infoProcCertified: false,
+
+            updateStats() {
+                document.getElementById('stats').innerHTML = `
+                    <p>날짜: ${this.day} (${this.isWeekend ? '주말' : '평일'})</p>
+                    <p>스트레스: ${this.stress.toFixed(1)}</p>
+                    <p>SQLD 점수: ${this.sqld.toFixed(2)}${this.sqldCertified ? ' (취득)' : ''}</p>
+                    <p>정보처리기사 점수: ${this.infoProcessing.toFixed(2)}${this.infoProcCertified ? ' (취득)' : ''}</p>
+                    <p>업무 성공: ${this.workSuccess}</p>
+                `;
+            },
+
+            updateActions() {
+                const actionsDiv = document.getElementById('actions');
+                actionsDiv.innerHTML = '';
+                if (this.isWeekend) {
+                    actionsDiv.innerHTML += `
+                        <button onclick="game.studySQLD()">SQLD 공부</button>
+                        <button onclick="game.studyInfoProcessing()">정보처리기사 공부</button>
+                        <button onclick="game.drinkAlcohol()">술 쳐먹기</button>
+                    `;
+                } else {
+                    actionsDiv.innerHTML += `
+                        <button onclick="game.workDay()">업무하기</button>
+                        <button onclick="game.writePost()">프로그래밍 갤러리에 글쓰기</button>
+                    `;
+                }
+            },
+
+            increaseScore(currentScore, type) {
+                if (currentScore < 58) {
+                    return Math.min(58, currentScore + Math.random() * 15);
+                } else {
+                    let newScore = currentScore + Math.random() * 0.35;
+                    if (newScore >= 60 && ((type === 'sqld' && !this.sqldCertified) || (type === 'infoProc' && !this.infoProcCertified))) {
+                        this.showCelebration(type === 'sqld' ? 'SQLD 자격증 취득!' : '정보처리기사 자격증 취득!');
+                        if (type === 'sqld') this.sqldCertified = true;
+                        else this.infoProcCertified = true;
+                    }
+                    return newScore;
+                }
+            },
+
+            studySQLD() {
+                this.sqld = this.increaseScore(this.sqld, 'sqld');
+                this.stress = Math.min(200, this.stress + 15);
+                this.message("SQLD 공부를 했습니다. 스트레스가 조금 증가했습니다.");
+                this.nextDay();
+            },
+
+            studyInfoProcessing() {
+                this.infoProcessing = this.increaseScore(this.infoProcessing, 'infoProc');
+                this.stress = Math.min(200, this.stress + 15);
+                this.message("정보처리기사 공부를 했습니다. 스트레스가 조금 증가했습니다.");
+                this.nextDay();
+            },
+
+            drinkAlcohol() {
+                this.stress = Math.max(0, this.stress - 30);
+                this.message("술을 쳐먹었습니다. 스트레스가 크게 감소했습니다.");
+                this.nextDay();
+            },
+
+            workDay() {
+                this.stress = Math.min(200, this.stress + 20);
+                if (Math.random() < 0.1) {
+                    this.workSuccess++;
+                    this.stress = Math.max(0, this.stress - 40);
+                    this.message("업무를 성공적으로 수행했습니다! 상사에게 칭찬을 받아 스트레스가 크게 감소했습니다.");
+                } else {
+                    this.message("한남상사에게 혼났습니다. 스트레스가 증가했습니다.");
+                }
+                this.nextDay();
+            },
+
+            writePost() {
+                if (Math.random() < 0.1) {
+                    this.stress = Math.min(200, this.stress + 40);
+                    this.message("프로그래밍 갤러리에 글을 썼는데 한남상사에게 들켰습니다. 크게 혼나 스트레스가 대폭 증가했습니다.");
+                } else {
+                    this.stress = Math.max(0, this.stress - 10);
+                    this.message("프로그래밍 갤러리에 한남상사 혐오글을 남겼습니다. 스트레스가 조금 감소했습니다.");
+                }
+                this.nextDay();
+            },
+
+            nextDay() {
+                this.day++;
+                this.isWeekend = (this.day % 7 === 0 || this.day % 7 === 6);
+
+                // Check if stress has reached or exceeded 200
+                if (this.stress >= 200) {
+                    this.stress = 200;  // Ensure stress is exactly 200
+                    this.updateStats();  // Display updated stress value
+                    setTimeout(() => this.endGame(false), 500);  // Delay end game to ensure stress is displayed
+                } else {
+                    this.checkEndGame();
+                    this.updateStats();
+                    this.updateActions();
+                }
+            },
+
+            message(text) {
+                document.getElementById('message').innerText = text;
+            },
+
+            checkEndGame() {
+                if (this.sqld >= 60 && this.infoProcessing >= 60 && this.workSuccess >= 1) {
+                    this.endGame(true);
+                }
+            },
+
+            endGame(isHappy) {
+                if (isHappy) {
+                    this.showCelebration("축하합니다! 게임을 클리어했습니다!");
+                } else {
+                    this.showFailure("게임 오버! 스트레스가 200에 도달하여 사망했습니다.");
+                }
+                document.getElementById('restart-container').style.display = 'block';
+                document.getElementById('actions').innerHTML = '';
+            },
+
+            showCelebration(message) {
+                const celebrationDiv = document.getElementById('celebration');
+                celebrationDiv.innerText = message;
+                celebrationDiv.style.display = 'block';
+                setTimeout(() => {
+                    celebrationDiv.style.display = 'none';
+                }, 2000);
+                
+                // 버튼 비활성화
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => button.disabled = true);
+                setTimeout(() => {
+                    buttons.forEach(button => button.disabled = false);
+                }, 1000);
+            },
+
+            showFailure(message) {
+                const failureDiv = document.getElementById('failure');
+                failureDiv.innerText = message;
+                failureDiv.style.display = 'block';
+                setTimeout(() => {
+                    failureDiv.style.display = 'none';
+                }, 2000);
+            },
+
+            start() {
+                this.updateStats();
+                this.updateActions();
+            }
+        };
+
+        game.start();
+    </script>
+</body>
+</html>
