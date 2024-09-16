@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멍청한유라ㅋ씨 키우기 게임</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #game-container { max-width: 600px; margin: 20px auto; }
+        .card { padding: 20px; }
+        #stats { margin-bottom: 20px; }
+        .progress { height: 30px; }
+        .emoji { font-size: 2em; }
+        .mission-list li.completed { text-decoration: line-through; color: green; }
+        .mission-list li.incomplete { color: red; }
+    </style>
+</head>
+<body>
+    <div id="game-container" class="card">
+        <h1 class="text-center">멍청한유라ㅋ씨 키우기 게임</h1>
+        <!-- 미션 목록을 동적으로 업데이트하기 위해 id 추가 -->
+        <ul id="mission-list" class="mission-list">
+            <li id="mission-sqld">SQLD 자격증 취득</li>
+            <li id="mission-infoProc">정보처리기사 자격증 취득</li>
+            <li id="mission-work">업무 성공 1회</li>
+        </ul>
+        <div id="stats"></div>
+        <div id="actions" class="d-flex flex-column"></div>
+        <div id="message" class="mt-3 text-center"></div>
+    </div>
+    <!-- 모달을 표시하기 위한 컨테이너 -->
+    <!-- 성공 모달 -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="successModalLabel">🎉 축하합니다!</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+          </div>
+          <div class="modal-body" id="successModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 실패 모달 -->
+    <div class="modal fade" id="failureModal" tabindex="-1" aria-labelledby="failureModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="failureModalLabel">😢 게임 오버</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+          </div>
+          <div class="modal-body" id="failureModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="restart-container" style="display: none;" class="text-center mt-4">
+        <button class="btn btn-primary" onclick="location.reload()">다시 시작</button>
+    </div>
+    <!-- Bootstrap JS (Modal 동작을 위해 필요) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class Game {
+            constructor() {
+                this.day = 1;
+                this.isWeekend = false;
+                this.stress = 50;
+                this.sqld = 0;
+                this.infoProcessing = 0;
+                this.workSuccess = 0;
+                this.sqldCertified = false;
+                this.infoProcCertified = false;
+                this.missions = {
+                    sqld: false,
+                    infoProc: false,
+                    work: false
+                };
+            }
+    
+            updateStats() {
+                const stressColor = this.stress >= 150 ? 'danger' : this.stress >= 100 ? 'warning' : 'success';
+                document.getElementById('stats').innerHTML = `
+                    <p>날짜: ${this.day} (${this.isWeekend ? '주말' : '평일'})</p>
+                    <p>스트레스: 
+                        <span class="emoji">${this.stress >= 150 ? '😡' : this.stress >= 100 ? '😟' : '😊'}</span>
+                        <div class="progress">
+                            <div class="progress-bar bg-${stressColor}" role="progressbar" style="width: ${this.stress / 2}%;" 
+                                aria-valuenow="${this.stress}" aria-valuemin="0" aria-valuemax="200">
+                                ${this.stress.toFixed(1)}
+                            </div>
+                        </div>
+                    </p>
+                    <p>SQLD 점수: ${this.sqld.toFixed(2)}${this.sqldCertified ? ' (취득)' : ''}</p>
+                    <p>정보처리기사 점수: ${this.infoProcessing.toFixed(2)}${this.infoProcCertified ? ' (취득)' : ''}</p>
+                    <p>업무 성공: ${this.workSuccess}</p>
+                `;
+                this.updateMissionList();
+            }
+
+            updateMissionList() {
+                // 미션 리스트 업데이트
+                const missionSqld = document.getElementById('mission-sqld');
+                const missionInfoProc = document.getElementById('mission-infoProc');
+                const missionWork = document.getElementById('mission-work');
+
+                if(this.missions.sqld) {
+                    missionSqld.classList.remove('incomplete');
+                    missionSqld.classList.add('completed');
+                } else {
+                    missionSqld.classList.remove('completed');
+                    missionSqld.classList.add('incomplete');
+                }
+
+                if(this.missions.infoProc) {
+                    missionInfoProc.classList.remove('incomplete');
+                    missionInfoProc.classList.add('completed');
+                } else {
+                    missionInfoProc.classList.remove('completed');
+                    missionInfoProc.classList.add('incomplete');
+                }
+
+                if(this.missions.work) {
+                    missionWork.classList.remove('incomplete');
+                    missionWork.classList.add('completed');
+                } else {
+                    missionWork.classList.remove('completed');
+                    missionWork.classList.add('incomplete');
+                }
+            }
+    
+            updateActions() {
+                const actionsDiv = document.getElementById('actions');
+                actionsDiv.innerHTML = '';
+                if (this.isWeekend) {
+                    actionsDiv.innerHTML += `
+                        <button class="btn btn-outline-primary my-2" onclick="game.studySQLD()">SQLD 공부</button>
+                        <button class="btn btn-outline-primary my-2" onclick="game.studyInfoProcessing()">정보처리기사 공부</button>
+                        <button class="btn btn-outline-danger my-2" onclick="game.drinkAlcohol()">술 쳐먹기</button>
+                    `;
+                } else {
+                    actionsDiv.innerHTML += `
+                        <button class="btn btn-outline-success my-2" onclick="game.workDay()">업무하기</button>
+                        <button class="btn btn-outline-warning my-2" onclick="game.writePost()">프로그래밍 갤러리에 글쓰기</button>
+                    `;
+                }
+            }
+    
+            increaseScore(currentScore, type) {
+                if (currentScore < 58) {
+                    return Math.min(58, currentScore + Math.random() * 15);
+                } else {
+                    let newScore = currentScore + Math.random() * 0.35;
+                    if (newScore >= 60 && ((type === 'sqld' && !this.sqldCertified) || (type === 'infoProc' && !this.infoProcCertified))) {
+                        this.showModal('success', type === 'sqld' ? 'SQLD 자격증을 취득하였습니다!' : '정보처리기사 자격증을 취득하였습니다!');
+                        if (type === 'sqld') {
+                            this.sqldCertified = true;
+                            this.missions.sqld = true;
+                        } else {
+                            this.infoProcCertified = true;
+                            this.missions.infoProc = true;
+                        }
+                        this.updateMissionList();
+                        this.checkEndGame();
+                    }
+                    return newScore;
+                }
+            }
+    
+            studySQLD() {
+                this.sqld = this.increaseScore(this.sqld, 'sqld');
+                this.stress = Math.min(200, this.stress + 15);
+                this.message("SQLD 공부를 했습니다. 스트레스가 조금 증가했습니다.");
+                this.nextDay();
+            }
+    
+            studyInfoProcessing() {
+                this.infoProcessing = this.increaseScore(this.infoProcessing, 'infoProc');
+                this.stress = Math.min(200, this.stress + 15);
+                this.message("정보처리기사 공부를 했습니다. 스트레스가 조금 증가했습니다.");
+                this.nextDay();
+            }
+    
+            drinkAlcohol() {
+                this.stress = Math.max(0, this.stress - 30);
+                this.message("술을 쳐먹었습니다. 스트레스가 크게 감소했습니다.");
+                this.nextDay();
+            }
+    
+            workDay() {
+                this.stress = Math.min(200, this.stress + 20);
+                if (Math.random() < 0.1) {
+                    this.workSuccess++;
+                    this.stress = Math.max(0, this.stress - 40);
+                    this.message("업무를 성공적으로 수행했습니다! 상사에게 칭찬을 받아 스트레스가 크게 감소했습니다.");
+                    if (!this.missions.work) {
+                        this.missions.work = true;
+                        this.updateMissionList();
+                        this.showModal('success', '업무를 성공적으로 완료하였습니다!');
+                        this.checkEndGame();
+                    }
+                } else {
+                    this.message("한남상사에게 혼났습니다. 스트레스가 증가했습니다.");
+                }
+                this.nextDay();
+            }
+    
+            writePost() {
+                if (Math.random() < 0.1) {
+                    this.stress = Math.min(200, this.stress + 40);
+                    this.message("프로그래밍 갤러리에 글을 썼는데 한남상사에게 들켰습니다. 크게 혼나 스트레스가 대폭 증가했습니다.");
+                } else {
+                    this.stress = Math.max(0, this.stress - 10);
+                    this.message("프로그래밍 갤러리에 한남상사 혐오글을 남겼습니다. 스트레스가 조금 감소했습니다.");
+                }
+                this.nextDay();
+            }
+    
+            nextDay() {
+                this.day++;
+                this.isWeekend = (this.day % 7 === 0 || this.day % 7 === 6);
+    
+                if (this.stress >= 200) {
+                    this.stress = 200;
+                    this.updateStats();
+                    setTimeout(() => this.endGame(false), 500);
+                } else {
+                    this.updateStats();
+                    this.updateActions();
+                }
+            }
+    
+            message(text) {
+                document.getElementById('message').innerText = text;
+            }
+    
+            checkEndGame() {
+                if (this.missions.sqld && this.missions.infoProc && this.missions.work) {
+                    this.endGame(true);
+                }
+            }
+    
+            endGame(isHappy) {
+                if (isHappy) {
+                    this.showModal('success', "모든 미션을 완료하였습니다! 게임을 클리어했습니다!");
+                } else {
+                    this.showModal('failure', "스트레스가 200에 도달하여 사망했습니다.");
+                }
+                document.getElementById('restart-container').style.display = 'block';
+                document.getElementById('actions').innerHTML = '';
+            }
+    
+            showModal(type, message) {
+                if (type === 'success') {
+                    document.getElementById('successModalBody').innerText = message;
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                } else if (type === 'failure') {
+                    document.getElementById('failureModalBody').innerText = message;
+                    const failureModal = new bootstrap.Modal(document.getElementById('failureModal'));
+                    failureModal.show();
+                }
+            }
+    
+            start() {
+                this.updateStats();
+                this.updateActions();
+            }
+        }
+    
+        const game = new Game();
+        game.start();
+    </script>
+</body>
+</html>
