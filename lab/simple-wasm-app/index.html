@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dcinside 프로그래밍 갤러리</title>
+    <!-- Bootstrap CSS 추가 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 카드 배경을 회색으로 설정 */
+        .card {
+            background-color: #f8f9fa; /* Bootstrap의 밝은 회색 (#f8f9fa) */
+        }
+        /* 버튼을 카드 하단에 고정하고 가운데 정렬 */
+        .card-footer {
+            text-align: center;
+            background-color: transparent;
+            border-top: none;
+            margin-top: auto; /* 카드 본문이 위로 확장되도록 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5 mb-3">
+        <h1>WebAssembly Add Function</h1>
+        <div class="card">
+            <div class="card-body">
+                <p class="card-text" id="result">
+                    Calculating...
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Include the generated JavaScript glue code -->
+    <script src="hello.js"></script>
+    <script>
+        // Call the module creation function and handle the promise
+        createModule().then(function(Module) {
+            // Call the exported 'add' function
+            var result = Module._add(5, 7);
+            document.getElementById('result').textContent = 'Result of add(5, 7): ' + result;
+        }).catch(function(err) {
+            console.error('Failed to load WebAssembly module:', err);
+        });
+    </script>
+</body>
+</html>
