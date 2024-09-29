@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload and Word Highlighting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #fileContent {
+            white-space: pre-wrap; /* Preserves formatting */
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        .word {
+            cursor: pointer;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload a File to Display Its Content</h1>
+    <input type="file" id="fileInput" accept=".txt, .json, .csv, .md" />
+    <div id="fileContent">File content will appear here after uploading.</div>
+
+    <script>
+        // Get references to the input and display elements
+        const fileInput = document.getElementById('fileInput');
+        const fileContent = document.getElementById('fileContent');
+
+        // Add an event listener for when the user selects a file
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                // Define what happens when the file is read
+                reader.onload = function(e) {
+                    let text = e.target.result;
+
+                    // Replace line breaks with <br> tags
+                    text = text.replace(/\n/g, '<br>');
+
+                    // Split text into words and spaces (including punctuation)
+                    const words = text.split(/(\s+)/);
+
+                    // Reconstruct text with each word wrapped in a span
+                    const content = words.map(function(word) {
+                        // Check if word is not just whitespace
+                        if (/\S/.test(word)) {
+                            return '<span class="word">' + word + '</span>';
+                        } else {
+                            return word; // Return whitespace as is
+                        }
+                    }).join('');
+
+                    // Set the content of the fileContent div
+                    fileContent.innerHTML = content;
+
+                    // Get all the word spans
+                    const wordSpans = document.querySelectorAll('#fileContent .word');
+
+                    // Add event listeners to each word span
+                    wordSpans.forEach(function(span) {
+                        span.addEventListener('mouseenter', function() {
+                            // Get the hovered word, stripped of punctuation and converted to lowercase
+                            const hoveredWord = span.textContent.replace(/[^\w]/g, '').toLowerCase();
+
+                            // Highlight all matching words
+                            wordSpans.forEach(function(otherSpan) {
+                                const otherWord = otherSpan.textContent.replace(/[^\w]/g, '').toLowerCase();
+                                if (otherWord === hoveredWord && hoveredWord !== '') {
+                                    otherSpan.classList.add('highlight');
+                                }
+                            });
+                        });
+
+                        span.addEventListener('mouseleave', function() {
+                            // Remove highlight from all words
+                            wordSpans.forEach(function(otherSpan) {
+                                otherSpan.classList.remove('highlight');
+                            });
+                        });
+                    });
+                };
+
+                // Define what happens in case of an error
+                reader.onerror = function() {
+                    fileContent.textContent = 'An error occurred while reading the file.';
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            } else {
+                fileContent.textContent = 'No file selected.';
+            }
+        });
+    </script>
+</body>
+</html>

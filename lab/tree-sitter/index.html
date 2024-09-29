@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check C Syntax with Tree-sitter</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #fileContent {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload a C File to Check Syntax</h1>
+    <input type="file" id="fileInput" accept=".c" />
+    <div id="fileContent">File content will appear here after uploading.</div>
+    <div id="result"></div>
+
+    <!-- Include web-tree-sitter from CDN -->
+    <script src="https://unpkg.com/web-tree-sitter@0.20.8/dist/tree-sitter.js"></script>
+    <script>
+        (async function() {
+            // Get references to the input and display elements
+            const fileInput = document.getElementById('fileInput');
+            const fileContent = document.getElementById('fileContent');
+            const resultDiv = document.getElementById('result');
+
+            // Initialize Tree-sitter
+            await TreeSitter.init();
+
+            const parser = new TreeSitter();
+
+            // Load the C language parser
+            const C = await TreeSitter.Language.load('tree-sitter-c.wasm'); // Ensure the path is correct
+            parser.setLanguage(C);
+
+            // Add an event listener for when the user selects a file
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+
+                if (file) {
+                    const reader = new FileReader();
+
+                    // Define what happens when the file is read
+                    reader.onload = function(e) {
+                        const code = e.target.result;
+
+                        // Display the code
+                        fileContent.textContent = code;
+
+                        // Parse the code using Tree-sitter
+                        const tree = parser.parse(code);
+
+                        // Check for syntax errors
+                        let hasError = false;
+
+                        function traverse(node) {
+                            if (node.hasError()) {
+                                hasError = true;
+                                return;
+                            }
+                            for (let i = 0; i < node.namedChildCount; i++) {
+                                traverse(node.namedChild(i));
+                            }
+                        }
+
+                        traverse(tree.rootNode);
+
+                        if (hasError) {
+                            resultDiv.textContent = 'Syntax Errors Found in the C Code.';
+                            resultDiv.style.color = 'red';
+                        } else {
+                            resultDiv.textContent = 'The C Code is Syntactically Valid.';
+                            resultDiv.style.color = 'green';
+                        }
+                    };
+
+                    // Define what happens in case of an error
+                    reader.onerror = function() {
+                        fileContent.textContent = 'An error occurred while reading the file.';
+                    };
+
+                    // Read the file as text
+                    reader.readAsText(file);
+                } else {
+                    fileContent.textContent = 'No file selected.';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
